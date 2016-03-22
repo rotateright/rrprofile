@@ -1,0 +1,82 @@
+#! /bin/sh
+#
+# Script to load the rrprofile module, create the directory /dev/rrprofile,
+# and mount the pseudo file system rrprofilefs on it.
+
+RETVAL=0
+MODPROBE=/sbin/modprobe
+
+MODULE_ARGS=""
+
+# some distributions (SLES11) refuse to load unsupported modules by default
+if ${MODPROBE} -c | grep -q '^allow_unsupported_modules  *0'; then
+	MODPROBE="${MODPROBE} --allow-unsupported-modules"
+fi
+
+start () 
+{
+	if [ -f /proc/sys/kernel/watchdog ]; then ## 2.6.36 and later
+		if [ `cat /proc/sys/kernel/watchdog` -eq "0" ]; then
+			echo "Verified that the NMI watchdog is disabled"
+		else
+			echo 0 > /proc/sys/kernel/watchdog
+			echo "Successfully disabled the NMI watchdog"
+		fi
+	elif [ -f /proc/sys/kernel/nmi_watchdog ]; then
+		if  [ `cat /proc/sys/kernel/nmi_watchdog` -ne "0" ]; then
+			echo "Verified that the NMI watchdog is disabled"
+		else
+			echo 0 > /proc/sys/kernel/nmi_watchdog
+			echo "Successfully disabled the NMI watchdog"
+		fi
+	fi
+
+	echo "Initializing rrprofile driver - args:${MODULE_ARGS}"
+	${MODPROBE} -q rrprofile ${MODULE_ARGS} && mkdir -p /dev/rrprofile && mount -t rrprofilefs nodev /dev/rrprofile
+	RETVAL=$?
+	echo "return: $RETVAL"
+}
+
+stop ()
+{
+	echo "Shutting down rrprofile driver"
+	umount /dev/rrprofile 2> /dev/null && ${MODPROBE} -q -r rrprofile 2> /dev/null
+	RETVAL=$?
+	echo "return: $RETVAL"
+}
+
+status () 
+{
+	echo "Checking for rrprofile driver"
+	grep /dev/rrprofile /etc/mtab >/dev/null
+	RETVAL=$?
+	echo "return: $RETVAL"
+}
+
+SCRIPT_NAME=$0
+ACTION=$1
+
+# append any remaining arguments to MODULE_ARGS
+if [ $# -gt 1 ]; then
+	shift
+	for i in "$@" ; do
+		MODULE_ARGS="${MODULE_ARGS} ${i}"
+	done
+fi
+
+case "${ACTION}" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	status)
+		status
+		;;
+	*)
+		echo "Usage: ${SCRIPT_NAME} {start} [module args]"
+		echo "       ${SCRIPT_NAME} {stop|status}"
+		RETVAL=1
+esac
+exit $RETVAL

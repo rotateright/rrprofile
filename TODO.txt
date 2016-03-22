@@ -1,0 +1,25 @@
+To Do
+=====
+*Add support for other counters to be in Counter mode. 
+*Currently, backtracing of the stack will terminate if the stack crosses
+ a page boundary and a page fault must occur. A page fault cannot occur
+ while servicing a performance monitor interrupt. A work around is to 
+ disable PMIs, and unwind the stack only when interrupts are re-enabled. 
+*For x86_64, CONFIG_DEBUG_INFO and CONFIG_FRAME_POINTER must be turned
+ on and the kernel recompiled for backtracing to work correctly.
+ CONFIG_DEBUG_INFO is required for backtracing to work in user space.
+ CONFIG_FRAME_POINTER is required for backtracing in kernel space. 
+ It may be possible to work around this limitation through hackery as
+ noted below.
+ -> Verify that opensuse has CONFIG_DEBUG_INFO turned on else 
+    can't view callstacks with suse linux. 
+ 
+Notes
+=====
+*The time between timer interrupts cannot be changed, i.e. there is no
+ mechanism to register a callback from the decrementer after a 
+ specified time? Refer to arch/ppc64/kernel/time.c:timer_interrupt().
+ The only work around is to hack the kernel. 
+*With reference to collecting a backtrace without CONFIG_DEBUG_INFO set
+ in the kernel. It may be possible to unroll the interrupt stack to 
+ obtain %rbp at the time of the interrupt. 
