@@ -395,7 +395,9 @@ static unsigned int get_stagger(void)
 {
 #ifdef CONFIG_SMP
 	int cpu = smp_processor_id();
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,19,0)
+	return cpu != cpumask_first(*this_cpu_ptr(&cpu_sibling_map));
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,30)
 	return cpu != cpumask_first(__get_cpu_var(cpu_sibling_map));
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,24)
 	return (cpu != first_cpu(per_cpu(cpu_sibling_map, cpu)));

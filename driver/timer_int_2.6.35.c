@@ -63,7 +63,11 @@ static enum hrtimer_restart oprofile_hrtimer_notify(struct hrtimer *hrtimer)
 
 static void __oprofile_hrtimer_start(void *unused)
 {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(3,19,0)
+	struct hrtimer *hrtimer = this_cpu_ptr(&oprofile_hrtimer);
+#else
 	struct hrtimer *hrtimer = &__get_cpu_var(oprofile_hrtimer);
+#endif
 #ifdef RRPROFILE
 	int cpu;
 #endif // RRPROFILE
