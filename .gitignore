@@ -30,3 +30,11 @@
 
 # Debug files
 *.dSYM/
+
+# kernel build temporary files
+/.tmp_versions/
+.*.ko.cmd
+.*.o.cmd
+*.mod.c
+Module.symvers
+modules.order
