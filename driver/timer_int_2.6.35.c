@@ -25,6 +25,10 @@
 
 #include "oprof.h"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,2,0)
+#define __cpuinit
+#endif
+
 static DEFINE_PER_CPU(struct hrtimer, oprofile_hrtimer);
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,37)
 static int ctr_running;
