@@ -39,6 +39,11 @@
 #include "cpu_buffer.h"
 #include "buffer_sync.h"
 
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(4,1,0)
+#define cpu_set(cpu, dst) cpumask_set_cpu((cpu), &(dst))
+#define cpus_clear(dst) cpumask_clear(&(dst))
+#define cpu_isset(cpu, cpumask) cpumask_test_cpu((cpu), &(cpumask))
+#endif
 
 #ifndef RRPROFILE
 static LIST_HEAD(dying_tasks);
